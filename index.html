@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=Roboto:wght@400&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* KUKAMI SUPERAPP v1.1 - SUPER LOCK UI */
+    :root { --maroon: #800000; --navy: #000080; --gold: #D4AF37; --bg: #E5E5E5; --white: #fff; --grey: #888; --green: #28a745; --light-grey: #ccc; }
+    body { font-family: sans-serif; margin: 0; background: var(--bg); user-select: none; padding-bottom: 90px; }
+    .page { display: none; padding: 15px; } .active { display: block; }
+    .rank-hl { background: yellow; color: #000; padding: 0 4px; border-radius: 4px; font-weight: 900; font-size: 10px; margin-left: 2px; }
+    .chip { display: flex; align-items: center; justify-content: center; text-align: center; min-width: 100px; padding: 10px 15px; background: #D1D1D1; border-radius: 12px; font-size: 11px; font-weight: 900; color: #444; cursor: pointer; border: 1px solid #ccc; line-height: 1.2; white-space: normal; }
+    .hl-tag { padding: 2px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; text-transform: uppercase; margin-right: 5px; }
+    .hl-online { background: var(--navy); color: white; }
+    .hl-offline { background: var(--maroon); color: white; }
+    .hl-hp { background: var(--navy); color: white; }
+    .hl-topup { background: var(--green); color: white; }
+    .item-r { display: flex; justify-content: space-between; padding: 12px; background: #fff; margin-bottom: 6px; border-radius: 10px; border-left: 4px solid var(--maroon); align-items: flex-start; }
+    .date-separator { display: flex; align-items: center; margin: 20px 0 10px; gap: 10px; }
+    .date-separator span { font-size: 12px; font-weight: 900; color: white; background: var(--navy); padding: 4px 15px; border-radius: 20px; }
+    .date-line { flex: 1; height: 1px; background: var(--navy); opacity: 0.3; }
+    .btn { background: var(--maroon); color: white; border: none; width: 100%; padding: 16px; border-radius: 50px; font-weight: 800; cursor: pointer; }
+    input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 14px; outline: none; box-sizing: border-box; }
+    .tab-btn { flex:1; padding:12px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; font-size: 12px; }
+    .tab-active { background: var(--maroon) !important; color: white !important; }
+    .tab-inactive { background: #D1D1D1 !important; color: #666 !important; }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; z-index: 1000; }
+    .nav-item { flex: 1; text-align: center; color: #bbb; font-size: 11px; font-weight: 800; cursor: pointer; }
+    .nav-item.active { color: var(--maroon); }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 5000; }
+    .m-content { background: white; width: 85%; margin: 10% auto; padding: 20px; border-radius: 20px; text-align: center; overflow: hidden; }
+    #loader { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.8); z-index:30000; flex-direction:column; align-items:center; justify-content:center; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .card-profile { background: var(--maroon); color: white; padding: 15px; border-radius: 15px; border-left: 8px solid var(--gold); margin-bottom: 12px; }
+    .service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .service-card { background: white; padding: 12px; border-radius: 12px; border-bottom: 4px solid #ddd; cursor: pointer; }
+    .service-card b { display: block; font-size: 10px; color: #333; margin-bottom: 4px; text-transform: uppercase; height: 24px; overflow: hidden; }
+    .service-card span { font-size: 14px; font-weight: 900; color: var(--maroon); }
+    .cart-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+    .qty-btn { background: #eee; border: none; width: 30px; height: 30px; border-radius: 6px; font-weight: bold; }
+    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 40000; width: 85%; pointer-events: none; }
+    .toast { background: rgba(0,0,0,0.85); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 10px; font-size: 13px; font-weight: 600; text-align: center; border-left: 5px solid var(--gold); }
+
+    
+  </style>
+</head>
+<body>
+  <div id="toast-container"></div>
+  <div id="loader"><div style="border:4px solid #f3f3f3; border-top:4px solid var(--maroon); border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite;"></div></div>
+
+  <div id="p-login" class="page active">
+    <div style="text-align:center; margin-top:80px; margin-bottom:20px;"><div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:42px;letter-spacing:-3px;"><span style="color:var(--maroon);">KU</span><span style="color:var(--navy);">KAMI</span></div><span style="font-family:'Roboto',sans-serif;font-size:13px;letter-spacing:11.5px;text-transform:lowercase;display:block;">delivery</span></div>
+    <div style="padding: 20px;"><input type="text" id="user" placeholder="Nama Rider"><input type="password" id="pin" placeholder="PIN" inputmode="numeric"><button class="btn" onclick="prosesLogin()">MASUK</button></div>
+  </div>
+
+  <div id="app-content" style="display:none; padding-top: 15px;">
+    <div id="p-home" class="page active">
+      <div class="card-profile">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <img id="r-foto" style="width:55px; height:55px; border-radius:50%; border:2px solid var(--gold); object-fit: cover; background:#eee;">
+          <div style="flex:1;"><h3 id="r-nama" style="margin:0; font-size:15px;"></h3>
+            <div style="font-size:9px; color:rgba(255,255,255,0.8); margin-top:5px;">
+              HARI INI: <b id="h-total">0</b> trip (ON:<b id="h-on">0</b> <span id="rk-h-on"></span> | OFF:<b id="h-off">0</b> <span id="rk-h-off"></span>)<br>
+              BULAN INI: <b id="b-total">0</b> trip (ON:<b id="b-on">0</b> <span id="rk-on"></span> | OFF:<b id="b-off">0</b> <span id="rk-off"></span>)
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <small style="font-size:10px; color:var(--gold); font-weight:bold;">SALDO</small><br>
+            <span id="r-saldo" style="font-weight:bold; font-size:14px;">Rp 0</span>
+            <button onclick="document.getElementById('m-topup').style.display='block'" style="background:var(--gold); color:white; border:none; width:22px; height:22px; border-radius:50%; margin-left:5px; font-weight:bold;">+</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:15px;"><button id="tb1" class="tab-btn tab-active" onclick="setSubTab(1)">MANUAL</button><button id="tb2" class="tab-btn tab-inactive" onclick="setSubTab(2)">TARIF</button></div>
+      <div id="f-manual">
+        <input type="text" id="m-nom" placeholder="Rp 0" readonly style="background:#fff; font-weight:bold; font-size:24px; text-align:right; border:1px solid #ddd;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 15px;">
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('1')">1</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('2')">2</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('3')">3</div>
+          <div style="grid-row: span 3; background: var(--maroon); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; border-radius: 12px;" onclick="openKetManual()">🛒</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('4')">4</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('5')">5</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('6')">6</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('7')">7</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('8')">8</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('9')">9</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('000')">000</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center;" onclick="pressNum('0')">0</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center; color:red;" onclick="pressNum('C')">C</div>
+          <div style="background:white; border:1px solid #ddd; padding:15px 0; border-radius:12px; font-size:18px; font-weight:800; text-align:center; color:red;" onclick="pressNum('⌫')">⌫</div>
+        </div>
+      </div>
+      <div id="f-tarif" style="display:none;"><div id="cat-list" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:15px;"></div><div id="grid-list" class="service-grid"></div></div>
+    </div>
+    <div id="p-riwayat" class="page"><div id="list-riwayat"></div></div>
+    <div class="bottom-nav">
+      <div id="n-home" class="nav-item active" onclick="switchMainTab('home')">HOME</div>
+      <div id="n-riwayat" class="nav-item" onclick="switchMainTab('riwayat')">RIWAYAT</div>
+      <div class="nav-item" onclick="logout()">LOGOUT</div>
+    </div>
+  </div>
+
+  <div id="cart-float" style="display:none; position:fixed; bottom:95px; left:20px; right:20px; z-index:900;">
+    <div style="background: var(--green) !important; border: 2px solid var(--white); box-shadow: 0 4px 10px rgba(0,0,0,0.2); padding:12px 20px; border-radius:50px; display:flex; justify-content:space-between; align-items:center; font-weight:bold; color:white;" onclick="showCart()">
+      <span>🛒 <span id="c-qty">0</span> ITEM</span><span id="c-total">Rp 0</span>
+    </div>
+  </div>
+
+  <div id="m-cart" class="modal"><div class="m-content"><h3>KERANJANG</h3><div id="c-list" style="text-align:left;"></div><hr><div style="display:flex; gap:10px;"><button class="btn" onclick="finalProcess('Online')" style="background:#007bff; flex:1;">ONLINE</button><button class="btn" onclick="finalProcess('Offline')" style="background:#dc3545; flex:1;">OFFLINE</button></div><button class="btn" onclick="tutupKeranjang()" style="background:#666; margin-top:10px;">BATAL</button></div></div>
+  <div id="m-alert" class="modal" style="display:none; z-index:15000; background:rgba(0,0,0,0.85);"><div class="m-content" style="border:2px solid var(--gold); padding:0; width:85%;"><div style="background:var(--maroon); color:var(--gold); padding:15px; font-weight:900;">⚠️ PERIKSA KERANJANG</div><div style="padding:20px; font-weight:bold; color:#333;">Mohon di cek kembali ada tarif atau fee tambahan yang lebih dari 1 QTY!</div><div style="padding:0 20px 20px 20px;"><button class="btn" onclick="tutupAlert()" style="background:var(--maroon); color:var(--gold);">OK, SAYA MENGERTI</button></div></div></div>
+  <div id="m-confirm" class="modal"><div class="m-content"><h3>Konfirmasi</h3><p id="confirm-msg"></p><div style="display:flex; gap:10px;"><button class="btn" onclick="executeAddToCart()" style="background:#28a745; flex:1;">LANJUTKAN</button><button class="btn" onclick="closeConfirm()" style="background:#dc3545; flex:1;">BATAL</button></div></div></div>
+  <div id="m-ket-manual" class="modal"><div class="m-content"><h3 style="margin-top:0; color:var(--maroon);">Keterangan Belanja</h3><input type="text" id="m-input-ket" placeholder="Contoh: Nasi Goreng Pak Jo" autocomplete="off"><button class="btn" onclick="submitKetManual()" style="background: #28a745;">TAMBAH KE KERANJANG</button><button class="btn" onclick="document.getElementById('m-ket-manual').style.display='none'" style="background:#666; margin-top:10px;">BATAL</button></div></div>
+  <div id="m-topup" class="modal"><div class="m-content"><h3>TOP UP</h3><input type="text" id="u-nom" placeholder="Nominal Rp" inputmode="numeric"><select id="u-met"><option value="BCA">BCA - 12345678 (Admin)</option><option value="DANA">DANA - 0812345678 (Admin)</option></select><button class="btn" onclick="saveTopUp()" style="background:#28a745; margin-top:10px;">KIRIM</button><button class="btn" onclick="document.getElementById('m-topup').style.display='none'" style="background:#666; margin-top:10px;">BATAL</button></div></div>
+
+  <div id="m-struk" class="modal" style="background: white;">
+    <div id="struk-area" style="width: 280px; margin: 0 auto; padding: 25px 10px; color: #000; background: white; font-family: 'Courier New', monospace;">
+      <div style="text-align: center;"><div style="font-family:'Montserrat',sans-serif;font-weight:900;font-size:40px;letter-spacing:-2px;"><span style="color:var(--maroon);">KU</span><span style="color:var(--navy);">KAMI</span></div><span style="font-family:'Roboto',sans-serif;font-size:9px;letter-spacing:8px;text-transform:lowercase;display:block;">delivery</span></div>
+      <div style="border-bottom: 1px dashed #000; margin: 10px 0;"></div>
+      <div style="font-size: 12px; line-height: 1.4;"><div style="display: flex; justify-content: space-between;"><span>NOTA:</span> <span id="s-inv">-</span></div><div style="display: flex; justify-content: space-between;"><span>TGL :</span> <span id="s-tgl">-</span></div><div style="display: flex; justify-content: space-between;"><span>RIDER:</span> <span id="s-rider" style="font-weight: 900; text-transform: uppercase;">-</span></div></div>
+      <div style="border-bottom: 1px dashed #000; margin: 10px 0;"></div>
+      <div style="text-align: center; font-weight: bold; font-size: 14px;">### LUNAS ###</div>
+      <div style="border-bottom: 1px dashed #000; margin: 10px 0;"></div>
+      <div id="s-items" style="font-size: 12px;"></div>
+      <div style="border-bottom: 1px dashed #000; margin: 10px 0;"></div>
+      <div style="display: flex; justify-content: space-between; align-items: center;"><span style="font-weight: bold; font-size: 15px;">TOTAL:</span><span id="s-total" style="background-color: #FFD700; color: #000; font-weight: 900; font-size: 16px; padding: 2px 10px; border-radius: 4px;">Rp 0</span></div>
+      <div style="border-bottom: 1px dashed #000; margin: 10px 0;"></div>
+      <div style="text-align: center; margin-top: 15px; font-size: 11px; font-family: sans-serif; font-weight: bold;">Jazakumulloh Khoiron Katsiron</div>
+    </div>
+    <div style="padding: 10px 20px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; gap: 10px;"><button class="btn" style="background: #5d0000; flex: 1;" onclick="printStruk()">SIMPAN</button><button class="btn" style="background: #25D366; flex: 1;" onclick="shareStruk()">WA</button></div>
+      <button class="btn" onclick="closeStruk()" style="background: #666; width: 100%;">TUTUP</button>
+    </div>
+  </div>
+
+  <script>
+    let warnedOnce = false;
+    let curRider = {}, masterTarif = [], cart = [], pendingItem = null, curNomStr = "0";
+
+    function getFingerprint() { let id = localStorage.getItem('kukami_fp'); if (!id) { id = 'ID-' + Math.random().toString(36).substr(2, 9).toUpperCase(); localStorage.setItem('kukami_fp', id); } return id; }
+    function formatRibuan(v) { return v.toString().replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, "."); }
+    function getAngka(v) { return Number(v.toString().replace(/\./g, "")); }
+    function toast(m) { const c = document.getElementById('toast-container'); const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = m; c.appendChild(d); setTimeout(() => d.remove(), 2500); }
+    function showLoading(s) { document.getElementById('loader').style.display = s ? 'flex' : 'none'; }
+
+    function setSubTab(n) { document.getElementById('f-manual').style.display = (n === 1) ? 'block' : 'none'; document.getElementById('f-tarif').style.display = (n === 2) ? 'block' : 'none'; document.getElementById('tb1').className = 'tab-btn ' + (n === 1 ? 'tab-active' : 'tab-inactive'); document.getElementById('tb2').className = 'tab-btn ' + (n === 2 ? 'tab-active' : 'tab-inactive'); }
+    function switchMainTab(t) { document.getElementById('p-home').style.display = t === 'home' ? 'block' : 'none'; document.getElementById('p-riwayat').style.display = t === 'riwayat' ? 'block' : 'none'; document.getElementById('n-home').className = 'nav-item ' + (t === 'home' ? 'active' : ''); document.getElementById('n-riwayat').className = 'nav-item ' + (t === 'riwayat' ? 'active' : ''); }
+
+    function prosesLogin() { showLoading(true); google.script.run.withSuccessHandler(res => { showLoading(false); if(res.status === "success") { curRider = res.rider; localStorage.setItem('kukami_session', JSON.stringify(curRider)); initDashboard(); } else alert("PIN Salah!"); }).loginRider(document.getElementById('user').value, document.getElementById('pin').value, getFingerprint()); }
+    
+    function initDashboard() {
+      document.getElementById('p-login').style.display = 'none'; document.getElementById('app-content').style.display = 'block';
+      showLoading(true);
+      google.script.run.withSuccessHandler(res => {
+        showLoading(false);
+        document.getElementById('r-nama').innerHTML = curRider.nama;
+        document.getElementById('r-saldo').innerText = "Rp " + (res.saldo || 0).toLocaleString();
+        if(res.foto) document.getElementById('r-foto').src = res.foto;
+        document.getElementById('h-total').innerText = res.stats.hari.total;
+        document.getElementById('h-on').innerText = res.stats.hari.on;
+        document.getElementById('h-off').innerText = res.stats.hari.off;
+        document.getElementById('b-total').innerText = res.stats.bulan.total;
+        document.getElementById('b-on').innerText = res.stats.bulan.on;
+        document.getElementById('b-off').innerText = res.stats.bulan.off;
+        
+        // --- LOGIKA RANKING HIGHLIGHT (ON & OFF) ---
+        if(res.stats.hari.rank_on) document.getElementById('rk-h-on').innerHTML = `<span class="rank-hl">#${res.stats.hari.rank_on}</span>`;
+        if(res.stats.hari.rank_off) document.getElementById('rk-h-off').innerHTML = `<span class="rank-hl">#${res.stats.hari.rank_off}</span>`;
+        if(res.stats.bulan.rank_on) document.getElementById('rk-on').innerHTML = `<span class="rank-hl">#${res.stats.bulan.rank_on}</span>`;
+        if(res.stats.bulan.rank_off) document.getElementById('rk-off').innerHTML = `<span class="rank-hl">#${res.stats.bulan.rank_off}</span>`;
+        
+        masterTarif = res.listTarif || []; renderRiwayat(res.riwayat);
+        const cats = [...new Set(masterTarif.map(x => x.kategori))];
+        document.getElementById('cat-list').innerHTML = cats.map(cat => `<div class="chip" onclick="renderGrid('${cat}')">${cat}</div>`).join('');
+        if(cats.length) renderGrid(cats[0]);
+      }).getDashboardData(curRider.id);
+    }
+
+    function pressNum(v) { if (v === 'C') curNomStr = "0"; else if (v === '⌫') curNomStr = curNomStr.length > 1 ? curNomStr.slice(0, -1) : "0"; else { if (curNomStr === "0") curNomStr = v; else curNomStr += v; } document.getElementById('m-nom').value = "Rp " + formatRibuan(curNomStr); }
+    function renderGrid(cat) { const f = masterTarif.filter(x => x.kategori === cat); document.getElementById('grid-list').innerHTML = f.map(i => `<div class="service-card" onclick="hitService('${i.layanan}', ${i.nominal})"><b>${i.layanan}</b><span>Rp ${Number(i.nominal).toLocaleString()}</span></div>`).join(''); }
+    function hitService(ket, nom) { const isRevenue = !["PARKIR", "FEE HUJAN", "CAS DILUAR JAM"].some(e => ket.toUpperCase().includes(e)); pendingItem = { ket: ket.toUpperCase(), nominal: nom, qty: 1, isRevenue: isRevenue }; executeAddToCart(); }
+    function openKetManual() { if(getAngka(curNomStr) <= 0) return toast("⚠️ Isi Nominal!"); document.getElementById('m-ket-manual').style.display = 'block'; }
+    function submitKetManual() {
+  const inputKet = document.getElementById('m-input-ket');
+  const ketRaw = inputKet.value.trim(); // Membersihkan spasi depan & belakang
+  const ket = ketRaw.toLowerCase();    // Diubah kecil semua untuk pengecekan
+
+  // 1. VALIDASI: Tidak boleh kosong
+  if (!ketRaw) {
+    return toast("⚠️ Isi keterangan belanja!"); 
+  }
+
+  document.getElementById('m-ket-manual').style.display = 'none';
+  
+  // 2. VALIDASI STRICT: Harus tepat tulisan "hp admin"
+  if (ket === "hp admin") { 
+    // Jika benar "hp admin", nominal otomatis Rp 10.000 dan tipe HP
+    pendingItem = { 
+      ket: "HP ADMIN", 
+      nominal: 10000, 
+      qty: 1, 
+      isHP: true 
+    }; 
+    executeAddToCart(); 
+  } 
+  else { 
+    // Cek apakah mengandung kata-kata tarif/ongkir untuk komisi 20%
+    const isRev = ["ongkir", "ongkos", "tarif", "tarip", "fee", "jasa"].some(k => ket.includes(k)); 
+    
+    pendingItem = { 
+      ket: ketRaw.toUpperCase(), 
+      nominal: getAngka(curNomStr), 
+      qty: 1, 
+      isRevenue: isRev 
+    }; 
+    
+    if (isRev) { 
+      document.getElementById('confirm-msg').innerHTML = "Layanan '" + ketRaw + "' memotong komisi 20%."; 
+      document.getElementById('m-confirm').style.display = 'block'; 
+    } else { 
+      executeAddToCart(); 
+    } 
+  }
+  
+  // Reset input kotak keterangan
+  inputKet.value = "";
+}
+
+    function executeAddToCart() {
+      document.getElementById('m-confirm').style.display = 'none'; if (pendingItem && pendingItem.isHP) { finalProcess('Online', [pendingItem]); return; }
+      const idx = cart.findIndex(c => c.ket === pendingItem.ket); if(idx > -1) cart[idx].qty++; else cart.push(pendingItem);
+      renderCart(); toast("✅ Ditambah"); curNomStr = "0"; document.getElementById('m-nom').value = "Rp 0";
+    }
+
+    function renderCart() { 
+      warnedOnce = false;
+      document.getElementById('cart-float').style.display = cart.length ? 'block' : 'none';
+      let tot = cart.reduce((a,c)=>a+(c.nominal*c.qty), 0);
+      document.getElementById('c-qty').innerText = cart.length; 
+      document.getElementById('c-total').innerText = "Rp " + tot.toLocaleString();
+      document.getElementById('c-list').innerHTML = cart.map((i, idx)=>`<div class="cart-row"><div style="flex:1;"><b>${i.ket}</b><br><small>Rp ${i.nominal.toLocaleString()}</small></div><div style="display:flex; align-items:center; gap:8px;"><button class="qty-btn" onclick="updateQty(${idx}, -1)">-</button><span style="font-weight:bold; min-width:20px; text-align:center;">${i.qty}</span><button class="qty-btn" onclick="updateQty(${idx}, 1)">+</button><button class="btn-del-item" onclick="removeItem(${idx})">🗑</button></div></div>`).join('');
+    }
+    function updateQty(idx, d) { cart[idx].qty += d; if (cart[idx].qty <= 0) removeItem(idx); else renderCart(); }
+    function removeItem(idx) { cart.splice(idx, 1); renderCart(); if(!cart.length) document.getElementById('m-cart').style.display = 'none'; }
+
+    function showCart() { document.getElementById('m-cart').style.display = 'block'; renderCart(); const allowed = ["PARKIR", "FEE TAMBAH TEMPAT"]; const hasErr = cart.some(i => { const n = i.ket.toUpperCase().trim(); return i.qty > 1 && !allowed.some(a => n.includes(a)); }); if (hasErr) document.getElementById('m-alert').style.display = 'block'; }
+    function tutupAlert() { document.getElementById('m-alert').style.display = 'none'; warnedOnce = true; }
+    function tutupKeranjang() { document.getElementById('m-cart').style.display = 'none'; document.getElementById('m-alert').style.display = 'none'; warnedOnce = false; }
+
+    function finalProcess(tipe, override) {
+      const items = override || cart;
+      const allowed = ["PARKIR", "FEE TAMBAH TEMPAT"];
+      const hasErr = items.some(i => { const n = i.ket.toUpperCase().trim(); return i.qty > 1 && !allowed.some(a => n.includes(a)); });
+      if (hasErr && !warnedOnce) { document.getElementById('m-alert').style.display = 'block'; return; }
+      warnedOnce = false; const tempItems = JSON.parse(JSON.stringify(items));
+      document.getElementById('m-cart').style.display = 'none'; showLoading(true);
+      google.script.run.withSuccessHandler(res => { showLoading(false); toast("✅ Berhasil!"); cart = []; renderCart(); initDashboard(); showStruk(res, tempItems); }).simpanTransaksi({ idRider: curRider.id, items: items, tipe: tipe, deviceId: getFingerprint() });
+    }
+
+    function showStruk(res, items) {
+      document.getElementById('s-inv').innerText = res.nota; document.getElementById('s-tgl').innerText = res.waktu; document.getElementById('s-rider').innerText = curRider.nama;
+      let h = ''; items.forEach(i => { h += `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-weight:bold;"><span>${i.ket}</span><span>${(i.nominal*i.qty).toLocaleString()}</span></div><div style="font-size:11px;">${i.qty} x ${i.nominal.toLocaleString()}</div></div>`; });
+      document.getElementById('s-items').innerHTML = h; document.getElementById('s-total').innerText = "Rp " + res.total.toLocaleString(); document.getElementById('m-struk').style.display = 'block';
+    }
+
+    function printStruk() { html2canvas(document.getElementById("struk-area")).then(canvas => { const link = document.createElement('a'); link.download = 'STRUK.png'; link.href = canvas.toDataURL(); link.click(); }); }
+    
+    async function shareStruk() {
+      const area = document.getElementById('struk-area'); showLoading(true);
+      try {
+        const canvas = await html2canvas(area, { scale: 2 });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+        const file = new File([blob], 'Struk_KUKAMI.png', { type: 'image/png' });
+        const sapaan = curRider.sapaan || "Amanah akan segera disampaikan, mohon ditunggu ya...";
+        const caption = `*KUKAMI DELIVERY*\n${sapaan}`;
+        if (navigator.share) { await navigator.share({ files: [file], text: caption, title: 'Struk KUKAMI' }); } else { toast("⚠️ Tidak didukung browser."); }
+      } catch (err) { toast("⚠️ Gagal proses struk."); } finally { showLoading(false); }
+    }
+
+    function closeStruk() { document.getElementById('m-struk').style.display = 'none'; switchMainTab('home'); setSubTab(1); curNomStr = "0"; document.getElementById('m-nom').value = "Rp 0"; initDashboard(); }
+    
+    function renderRiwayat(data) {
+      let h = '', lastD = '';
+      if (!data || !data.length) return document.getElementById('list-riwayat').innerHTML = '<div style="padding:30px; text-align:center; color:#888;">Belum ada riwayat</div>';
+      data.forEach(i => {
+        if(i.tglDisplay !== lastD) { h += `<div class="date-separator"><span style="font-size: 13px; font-weight: bold; padding: 4px 15px;">${i.tglDisplay}</span><div class="date-line"></div></div>`; lastD = i.tglDisplay; }
+        let tClass = i.tipe.toLowerCase();
+        if (i.ket.toUpperCase().includes("HP ADMIN")) tClass = "hp";
+        if (i.tipe.toUpperCase() === "TOPUP") tClass = "topup";
+        h += `<div class="item-r"><div style="flex: 1; padding-right: 10px; font-size: 10px;"><div style="color: #888; margin-bottom: 3px;">${i.jam} | <span style="font-weight: bold; color: #333;">${i.id}</span></div><div style="color: #333; margin-bottom: 5px; line-height: 1.3;">${i.ket}</div><div><span class="hl-tag hl-${tClass}">${i.tipe}</span></div></div><div style="text-align: right; min-width: 85px; padding-top: 2px;"><span style="color: var(--maroon); font-weight: bold; font-size: 12px;">Rp ${Number(i.nom).toLocaleString()}</span></div></div>`;
+      });
+      document.getElementById('list-riwayat').innerHTML = h;
+    }
+
+    function saveTopUp() {
+      const nom = getAngka(document.getElementById('u-nom').value);
+      const met = document.getElementById('u-met').value;
+      if (nom <= 0) return toast("⚠️ Masukkan nominal!");
+      document.getElementById('m-topup').style.display = 'none'; showLoading(true);
+      google.script.run.withSuccessHandler(res => { initDashboard(); showLoading(false); document.getElementById('u-nom').value = ""; toast("🚀 Request Terkirim!"); }).requestTopUp({ idRider: curRider.id, nominal: nom, metode: met, deviceId: getFingerprint() });
+    }
+
+    function closeConfirm() { document.getElementById('m-confirm').style.display = 'none'; pendingItem = null; }
+    function logout() { if(confirm("Logout?")) { localStorage.clear(); location.reload(); } }
+    window.onload = function() { const s = localStorage.getItem('kukami_session'); if (s) { curRider = JSON.parse(s); initDashboard(); } document.getElementById('u-nom').addEventListener('input', function(e) { this.value = formatRibuan(this.value); }); };
+  </script>
+</body>
+</html>
