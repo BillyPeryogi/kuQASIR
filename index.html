@@ -136,6 +136,8 @@
   </div>
 
   <script>
+    const SCRIPT_URL =
+"https://script.google.com/macros/s/AKfycbzghcP2W4NJ3EGFe8RuCzMRStQmhgv55hrIIOYBPRSewsseXJDKG8iZhazSSjkPoXPzFw/exec";
     let warnedOnce = false;
     let curRider = {}, masterTarif = [], cart = [], pendingItem = null, curNomStr = "0";
 
@@ -148,35 +150,216 @@
     function setSubTab(n) { document.getElementById('f-manual').style.display = (n === 1) ? 'block' : 'none'; document.getElementById('f-tarif').style.display = (n === 2) ? 'block' : 'none'; document.getElementById('tb1').className = 'tab-btn ' + (n === 1 ? 'tab-active' : 'tab-inactive'); document.getElementById('tb2').className = 'tab-btn ' + (n === 2 ? 'tab-active' : 'tab-inactive'); }
     function switchMainTab(t) { document.getElementById('p-home').style.display = t === 'home' ? 'block' : 'none'; document.getElementById('p-riwayat').style.display = t === 'riwayat' ? 'block' : 'none'; document.getElementById('n-home').className = 'nav-item ' + (t === 'home' ? 'active' : ''); document.getElementById('n-riwayat').className = 'nav-item ' + (t === 'riwayat' ? 'active' : ''); }
 
-    function prosesLogin() { showLoading(true); google.script.run.withSuccessHandler(res => { showLoading(false); if(res.status === "success") { curRider = res.rider; localStorage.setItem('kukami_session', JSON.stringify(curRider)); initDashboard(); } else alert("PIN Salah!"); }).loginRider(document.getElementById('user').value, document.getElementById('pin').value, getFingerprint()); }
-    
-    function initDashboard() {
-      document.getElementById('p-login').style.display = 'none'; document.getElementById('app-content').style.display = 'block';
-      showLoading(true);
-      google.script.run.withSuccessHandler(res => {
-        showLoading(false);
-        document.getElementById('r-nama').innerHTML = curRider.nama;
-        document.getElementById('r-saldo').innerText = "Rp " + (res.saldo || 0).toLocaleString();
-        if(res.foto) document.getElementById('r-foto').src = res.foto;
-        document.getElementById('h-total').innerText = res.stats.hari.total;
-        document.getElementById('h-on').innerText = res.stats.hari.on;
-        document.getElementById('h-off').innerText = res.stats.hari.off;
-        document.getElementById('b-total').innerText = res.stats.bulan.total;
-        document.getElementById('b-on').innerText = res.stats.bulan.on;
-        document.getElementById('b-off').innerText = res.stats.bulan.off;
-        
-        // --- LOGIKA RANKING HIGHLIGHT (ON & OFF) ---
-        if(res.stats.hari.rank_on) document.getElementById('rk-h-on').innerHTML = `<span class="rank-hl">#${res.stats.hari.rank_on}</span>`;
-        if(res.stats.hari.rank_off) document.getElementById('rk-h-off').innerHTML = `<span class="rank-hl">#${res.stats.hari.rank_off}</span>`;
-        if(res.stats.bulan.rank_on) document.getElementById('rk-on').innerHTML = `<span class="rank-hl">#${res.stats.bulan.rank_on}</span>`;
-        if(res.stats.bulan.rank_off) document.getElementById('rk-off').innerHTML = `<span class="rank-hl">#${res.stats.bulan.rank_off}</span>`;
-        
-        masterTarif = res.listTarif || []; renderRiwayat(res.riwayat);
-        const cats = [...new Set(masterTarif.map(x => x.kategori))];
-        document.getElementById('cat-list').innerHTML = cats.map(cat => `<div class="chip" onclick="renderGrid('${cat}')">${cat}</div>`).join('');
-        if(cats.length) renderGrid(cats[0]);
-      }).getDashboardData(curRider.id);
+    async function prosesLogin() {
+
+  const user =
+    document.getElementById('user').value.trim();
+
+  const pin =
+    document.getElementById('pin').value.trim();
+
+  if(!user || !pin){
+
+    alert("Isi user dan PIN");
+
+    return;
+  }
+
+  showLoading(true);
+
+  try {
+
+    const res = await fetch(SCRIPT_URL, {
+
+      method: "POST",
+
+      mode: "cors",
+
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8"
+      },
+
+      body: JSON.stringify({
+
+        action: "login",
+
+        user: user,
+
+        pin: pin,
+
+        deviceId: getFingerprint()
+
+      })
+
+    });
+
+    const data = await res.json();
+
+    showLoading(false);
+
+    console.log(data);
+
+    if(data.status === "success"){
+
+      curRider = data.rider;
+
+      localStorage.setItem(
+        'kukami_session',
+        JSON.stringify(curRider)
+      );
+
+      initDashboard();
+
+    } else {
+
+      alert(
+        data.message || "PIN salah"
+      );
     }
+
+  } catch(e){
+
+    showLoading(false);
+
+    alert(
+      "LOGIN ERROR:\n" +
+      e.message
+    );
+  }
+}
+    
+    async function initDashboard() {
+
+  document.getElementById(
+    'p-login'
+  ).style.display = 'none';
+
+  document.getElementById(
+    'app-content'
+  ).style.display = 'block';
+
+  showLoading(true);
+
+  try {
+
+    const res = await fetch(
+      SCRIPT_URL,
+      {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type":
+          "text/plain;charset=utf-8"
+        },
+
+        body: JSON.stringify({
+
+          action: "dashboard",
+
+          idRider: curRider.id
+
+        })
+
+      }
+    );
+
+    const data =
+      await res.json();
+
+    showLoading(false);
+
+    document.getElementById(
+      'r-nama'
+    ).innerHTML =
+      curRider.nama;
+
+    document.getElementById(
+      'r-saldo'
+    ).innerText =
+      "Rp " +
+      (
+        (data.saldo || 0)
+        .toLocaleString()
+      );
+
+    if(data.foto){
+
+      document.getElementById(
+        'r-foto'
+      ).src = data.foto;
+    }
+
+    document.getElementById(
+      'h-total'
+    ).innerText =
+      data.stats.hari.total;
+
+    document.getElementById(
+      'h-on'
+    ).innerText =
+      data.stats.hari.on;
+
+    document.getElementById(
+      'h-off'
+    ).innerText =
+      data.stats.hari.off;
+
+    document.getElementById(
+      'b-total'
+    ).innerText =
+      data.stats.bulan.total;
+
+    document.getElementById(
+      'b-on'
+    ).innerText =
+      data.stats.bulan.on;
+
+    document.getElementById(
+      'b-off'
+    ).innerText =
+      data.stats.bulan.off;
+
+    masterTarif =
+      data.listTarif || [];
+
+    renderRiwayat(
+      data.riwayat || []
+    );
+
+    const cats = [
+      ...new Set(
+        masterTarif.map(
+          x => x.kategori
+        )
+      )
+    ];
+
+    document.getElementById(
+      'cat-list'
+    ).innerHTML =
+      cats.map(cat =>
+        `<div class="chip"
+onclick="renderGrid('${cat}')">
+${cat}
+</div>`
+      ).join('');
+
+    if(cats.length){
+
+      renderGrid(cats[0]);
+    }
+
+  } catch(e){
+
+    showLoading(false);
+
+    alert(
+      "DASHBOARD ERROR:\n" +
+      e.message
+    );
+  }
+}
 
     function pressNum(v) { if (v === 'C') curNomStr = "0"; else if (v === '⌫') curNomStr = curNomStr.length > 1 ? curNomStr.slice(0, -1) : "0"; else { if (curNomStr === "0") curNomStr = v; else curNomStr += v; } document.getElementById('m-nom').value = "Rp " + formatRibuan(curNomStr); }
     function renderGrid(cat) { const f = masterTarif.filter(x => x.kategori === cat); document.getElementById('grid-list').innerHTML = f.map(i => `<div class="service-card" onclick="hitService('${i.layanan}', ${i.nominal})"><b>${i.layanan}</b><span>Rp ${Number(i.nominal).toLocaleString()}</span></div>`).join(''); }
